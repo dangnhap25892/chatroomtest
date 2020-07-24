@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Hello SocketIO</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="jquery-3.1.1.min.js"></script>
+    <script>
+    var socket = io("http://localhost:3000");
+    socket.on("server-send-dangki-thatbai", function(data){
+      alert("User " + data + " is not availble!");
+    });
+    socket.on("server-send-dangki-thanhcong", function(data){
+      var s = "<div socketid='"+data.id+"' class='motUser'>" + data.username + "</div>";
+      $("#danhsachUsersOnline").append(s);
+      //hide form dang ki user
+    });
+    socket.on("server_gui_message", function(data){
+      var hoten = "<span class='hoten'>" + data.Username + ": </span>";
+      var msg =  "<span class='msg'>" + data.msg + "</span>";
+      $("#dsMsg").append(hoten + msg + "<div class='block'></div>");
+    });
+    socket.on("server_xuly_chocgheo", function(data){
+      //alert(data + "vua moi choc ban :D");
+      $( "body" ).effect( "shake" );
+    });
+
+    $(document).ready(function(){
+      $("#btnDangki").click(function(){
+        socket.emit("client_gui_username", $("#txtUser").val());
+      });
+      $("#btnChat").click(function(){
+        socket.emit("client_gui_message", $("#txtMessage").val());
+        $("#txtMessage").val("");
+      });
+      $(document).on("click", ".motUser", function(){
+        var id = $(this).attr("socketid");
+        socket.emit("user-chocgheo-socketid-khac", id);
+      });
+    });
+    </script>
+    <link rel="stylesheet" type="text/css" href="main.css" />
+
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css">
+    <style>
+    #toggle {
+      width: 100px;
+      height: 100px;
+      background: #ccc;
+    }
+    </style>
+    <script src="//code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+
+  </head>
+  <body>
+    <div id="wrapper">
+      <h1>DEMO CHAT SOCKET IO - NODEJS</h1>
+      <input type="text" id="txtUser" placeholder="Username" />
+      <input type="button" id="btnDangki" value="Dang ki"  />
+      <div class="block"></div>
+      <div id="left">
+        <div id="title">Users Online</div>
+        <div id="danhsachUsersOnline"></div>
+      </div>
+      <div id="right">
+        <div id="dsMsg"></div>
+        <div class="block"></div>
+        <input type="text" id="txtMessage" placeholder="Message..." />
+        <input type="button" id="btnChat" value="Chat" />
+      </div>
+    </div>
+  </body>
+</html>

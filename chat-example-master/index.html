@@ -1,0 +1,271 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+      #messages { margin-bottom: 40px }
+    </style>
+    <!--new -->
+    <link rel="shortcut icon" href="">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <!--new -->
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+
+    
+  </head>
+  <body>
+    <!-- new-->
+    <div id="loginForm" style="margin-bottom: 30px " class="text-center">
+    <h3>CHƯƠNG TRÌNH CHƠI CỜ CARO </h3>
+    <h4>DÙNG SOCKET.IO & D3 JS</h4>
+    <h4>Nhập vào tên người chơi:</h4>
+    <input type="text" id="txtUsername"/>
+    <input type="button" value="Register" id="btnRegister">
+    <div id="boxContent"></div>
+    </div>
+    <div id="dulieu"></div>
+    <!-- new-->
+    <ul id="messages"></ul>
+    <form action="">
+      <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+
+    <script>
+      $(function () {
+        var socket = io();
+        $('form').submit(function(){
+          socket.emit('chat message', $('#m').val());
+          $('#m').val('');
+          return false;
+        });
+        socket.on('chat message', function(msg){
+          $('#messages').append($('<li>').text(msg));
+          window.scrollTo(0, document.body.scrollHeight);
+        });
+//new
+socket.on("server-send-danhsach-user", function (data) {
+        $("#boxContent").html("");
+        data.forEach(function (i) {
+            $("#boxContent").append("<div class='user'>" + i + "</div>")
+        })
+    })
+
+$(document).ready(function () {
+        //nguoi choi emit ten dang nhap len server
+        $("#btnRegister").click(function () {
+            socket.emit("client-send-name", $("#txtUsername").val())
+        })
+    })
+//new
+        socket.on("phat-su-kien-thang-thua",function (data) {
+        const lost = svg
+            .append("text")
+            .attr("x",200)
+            .attr("y",200)
+            .text(data)
+            .style("fill","black")
+            .style("font-size", "30px")
+    })
+
+        socket.on("khong-cho-doi-thu-click-khi-thua",function () {
+        $('#content').css('pointer-events', 'none');
+    })
+
+socket.on("server-send-data", function (data) {
+        console.log("gia tri ma client nhan tu server:")
+        console.log("mang nguoi choi :" + data.ArrId)
+        console.log("Id:" + data.name);
+        console.log("nguoi cho thu:", data.nguoichoi)
+        console.log("Ma tran cac nuoc di:",data.Board)
+        console.log("Gia tri cua nguoi choi:"+ data.value)
+        console.log("x_client:" + data.x);
+        console.log("y_client:" + data.y);
+        var s = "<div class='motUser'>"+data.name +"</div>";
+        $("#dulieu").append(s);
+        let matrix = data.Board;
+        let Cur_Row = parseInt(data.x);
+        let Cur_Col = parseInt(data.y);
+        let Value = parseInt(data.value);
+        const tick = svg
+            .append("text")
+            .attr("x", parseInt(data.x))
+            .attr("y", parseInt(data.y))
+            .attr("text-anchor", "middle")
+            .attr("dx", boxsize / 2)
+            .attr("dy", boxsize / 2 + 8)
+            .text(function () {
+                if (data.nguoichoi === 1) {
+                    return "X"
+                }
+                else if (data.nguoichoi === 0) {
+                    return "O"
+                }
+            })
+            .style("font-weight", "bold")
+            .style("font-size", "30px")
+            .style("fill", function () {
+                if (data.nguoichoi === 1) {
+                    return "000066"
+                }
+                else if (data.nguoichoi === 0) {
+                    return "FF0000"
+                }
+            })
+    })
+
+   const div = d3.select("body").append("div").attr("id", "content").style("text-align","center");
+    // create <svg>
+    const svg = div.append("svg").attr("width", 500).attr("height", 600);
+    //-------------------------------------------------------
+    let boxsize =50 // kich thuoc cua moi o vuong
+    let n= 10 // so luong o vuong tren 1 hang
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+            // draw each chess field
+            const box = svg.append("rect")
+                .attr("x", i * boxsize)
+                .attr("y", j * boxsize)
+                .attr("width", boxsize)
+                .attr("height", boxsize)
+                .attr("id", "b" + i + j)
+                .style("stroke","black")
+                .on("click", function () {
+                    let selected = d3.select(this);
+                    socket.emit("su-kien-click", {x: selected.attr('x'), y: selected.attr('y')})
+
+                });
+            if ((i + j) % 2 === 0) {
+                box.attr("fill", "beige");
+            } else {
+                box.attr("fill", "beige");
+            }
+        }
+    }
+  
+      //new
+
+      });
+
+      
+    //ket noi len server
+    //Buoc2-2: khach hang lang nghe du lieu tu server tra ve cho tat ca
+    //khach hang
+/* 1
+    socket.on("server-send-danhsach-user", function (data) {
+        $("#boxContent").html("");
+        data.forEach(function (i) {
+            $("#boxContent").append("<div class='user'>" + i + "</div>")
+        })
+    })
+
+    $(document).ready(function () {
+        //nguoi choi emit ten dang nhap len server
+        $("#btnRegister").click(function () {
+            socket.emit("client-send-name", $("#txtUsername").val())
+        })
+    })
+*/
+
+    //----------In len man hinh nguoi choi bi thua va nguoi thang cuoc--------
+    /*2
+    socket.on("phat-su-kien-thang-thua",function (data) {
+        const lost = svg
+            .append("text")
+            .attr("x",200)
+            .attr("y",200)
+            .text(data)
+            .style("fill","black")
+            .style("font-size", "30px")
+    })
+
+      //khi 1 trong 2 nguoi choi bi thua thi se khong cho click them vao ban co
+    
+    
+    //----------------------------
+    //----------------------------
+    socket.on("server-send-data", function (data) {
+        console.log("gia tri ma client nhan tu server:")
+        console.log("mang nguoi choi :" + data.ArrId)
+        console.log("Id:" + data.name);
+        console.log("nguoi cho thu:", data.nguoichoi)
+        console.log("Ma tran cac nuoc di:",data.Board)
+        console.log("Gia tri cua nguoi choi:"+ data.value)
+        console.log("x_client:" + data.x);
+        console.log("y_client:" + data.y);
+        let matrix = data.Board;
+        let Cur_Row = parseInt(data.x);
+        let Cur_Col = parseInt(data.y);
+        let Value = parseInt(data.value);
+        const tick = svg
+            .append("text")
+            .attr("x", parseInt(data.x))
+            .attr("y", parseInt(data.y))
+            .attr("text-anchor", "middle")
+            .attr("dx", boxsize / 2)
+            .attr("dy", boxsize / 2 + 8)
+            .text(function () {
+                if (data.nguoichoi === 1) {
+                    return "X"
+                }
+                else if (data.nguoichoi === 0) {
+                    return "O"
+                }
+            })
+            .style("font-weight", "bold")
+            .style("font-size", "30px")
+            .style("fill", function () {
+                if (data.nguoichoi === 1) {
+                    return "000066"
+                }
+                else if (data.nguoichoi === 0) {
+                    return "FF0000"
+                }
+            })
+    })
+*/
+
+    </script>
+    <!--
+    <script>
+    const div = d3.select("body").append("div").attr("id", "content").style("text-align","center");
+    // create <svg>
+    const svg = div.append("svg").attr("width", 500).attr("height", 600);
+    //-------------------------------------------------------
+    let boxsize =50 // kich thuoc cua moi o vuong
+    let n= 10 // so luong o vuong tren 1 hang
+    for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+            // draw each chess field
+            const box = svg.append("rect")
+                .attr("x", i * boxsize)
+                .attr("y", j * boxsize)
+                .attr("width", boxsize)
+                .attr("height", boxsize)
+                .attr("id", "b" + i + j)
+                .style("stroke","black")
+                .on("click", function () {
+                    let selected = d3.select(this);
+                    socket.emit("su-kien-click", {x: selected.attr('x'), y: selected.attr('y')})
+
+                });
+            if ((i + j) % 2 === 0) {
+                box.attr("fill", "beige");
+            } else {
+                box.attr("fill", "beige");
+            }
+        }
+    }
+  </script>
+-->
+  </body>
+</html>
